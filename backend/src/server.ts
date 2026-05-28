@@ -165,8 +165,8 @@ app.use((error: AppError, _request: Request, response: Response, _next: NextFunc
 
   if (error.code === 'LIMIT_FILE_SIZE') {
     response.status(400).json({
-      message: 'La foto no puede pesar más de 5 MB.',
-      errors: { photo: 'La foto no puede pesar más de 5 MB.' },
+      message: 'La foto no puede pesar más de 15 MB.',
+      errors: { photo: 'La foto no puede pesar más de 15 MB.' },
     });
     return;
   }

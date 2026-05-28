@@ -110,7 +110,7 @@ export function JoinForm() {
                 },
                 maxSize: (files) => {
                   const file = files?.[0];
-                  return !file || file.size <= 5 * 1024 * 1024 || 'La foto no puede pesar más de 5 MB.';
+                  return !file || file.size <= 15 * 1024 * 1024 || 'La foto no puede pesar más de 15 MB.';
                 },
               },
             })}

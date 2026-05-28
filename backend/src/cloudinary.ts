@@ -10,7 +10,11 @@ cloudinary.config({
 export async function uploadImage(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: 'emaus-parejas', resource_type: 'image' },
+      {
+        folder: 'emaus-parejas',
+        resource_type: 'image',
+        transformation: [{ width: 600, height: 600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
+      },
       (error, result) => {
         if (error || !result) {
           reject(error ?? new Error('Error al subir la imagen a Cloudinary.'));
