@@ -16,12 +16,15 @@ export function PersonAvatar({ firstName, lastName, photoUrl, size = 'md' }: Per
   const base = `${sizeClasses[size]} shrink-0 rounded-full border border-[#e6d8bd]`;
 
   if (photoUrl) {
+    const url = getMediaUrl(photoUrl);
     return (
-      <img
-        src={getMediaUrl(photoUrl)}
-        alt={`Foto de ${firstName} ${lastName}`}
-        className={`${base} object-cover`}
-      />
+      <a href={url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+        <img
+          src={url}
+          alt={`Foto de ${firstName} ${lastName}`}
+          className={`${sizeClasses[size]} rounded-full border border-[#e6d8bd] object-cover transition hover:opacity-80 hover:ring-2 hover:ring-[#8a5f13] hover:ring-offset-1`}
+        />
+      </a>
     );
   }
 
