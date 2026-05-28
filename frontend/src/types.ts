@@ -5,6 +5,7 @@ export interface Person {
   dateOfBirth: string;
   anniversaryDate: string;
   photoUrl: string | null;
+  active: boolean;
 }
 
 export interface BirthdayPerson extends Person {

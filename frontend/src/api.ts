@@ -60,6 +60,26 @@ export function listPeople(adminToken: string): Promise<{ people: Person[] }> {
   });
 }
 
+export function updatePerson(
+  adminToken: string,
+  id: number,
+  payload: { firstName: string; lastName: string; dateOfBirth: string; anniversaryDate: string },
+): Promise<{ person: Person }> {
+  return request<{ person: Person }>(`/api/people/${id}`, {
+    method: 'PATCH',
+    headers: { ...adminHeaders(adminToken), 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function setPersonActive(adminToken: string, id: number, active: boolean): Promise<{ person: Person }> {
+  return request<{ person: Person }>(`/api/people/${id}/active`, {
+    method: 'PATCH',
+    headers: { ...adminHeaders(adminToken), 'content-type': 'application/json' },
+    body: JSON.stringify({ active }),
+  });
+}
+
 export function getMediaUrl(path: string): string {
   return path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
 }
