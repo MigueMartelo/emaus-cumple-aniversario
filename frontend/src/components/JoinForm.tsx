@@ -5,6 +5,7 @@ import { ApiError, createPerson } from '../api.ts';
 import type { FormValues, Person } from '../types.ts';
 import { fullName } from '../utils.ts';
 import { TextField } from './TextField.tsx';
+import { DateField } from './DateField.tsx';
 import { FileField } from './FileField.tsx';
 
 export function JoinForm() {
@@ -81,20 +82,20 @@ export function JoinForm() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField
+            <DateField
               label="Fecha de nacimiento"
-              type="date"
               error={errors.dateOfBirth?.message}
               registration={register('dateOfBirth', {
                 required: 'La fecha de nacimiento es obligatoria.',
+                pattern: { value: /^\d{4}-\d{2}-\d{2}$/, message: 'Usa el formato AAAA-MM-DD.' },
               })}
             />
-            <TextField
+            <DateField
               label="Fecha de aniversario"
-              type="date"
               error={errors.anniversaryDate?.message}
               registration={register('anniversaryDate', {
                 required: 'La fecha de aniversario es obligatoria.',
+                pattern: { value: /^\d{4}-\d{2}-\d{2}$/, message: 'Usa el formato AAAA-MM-DD.' },
               })}
             />
           </div>

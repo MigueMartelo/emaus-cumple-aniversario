@@ -4,6 +4,7 @@ import { Loader2, Save, X } from 'lucide-react';
 import { ApiError, updatePerson } from '../api.ts';
 import type { Person } from '../types.ts';
 import { TextField } from './TextField.tsx';
+import { DateField } from './DateField.tsx';
 
 interface EditPersonModalProps {
   person: Person;
@@ -90,17 +91,23 @@ export function EditPersonModal({ person, adminToken, onSaved, onClose }: EditPe
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField
+            <DateField
               label="Fecha de nacimiento"
-              type="date"
+              defaultValue={person.dateOfBirth}
               error={errors.dateOfBirth?.message}
-              registration={register('dateOfBirth', { required: 'La fecha de nacimiento es obligatoria.' })}
+              registration={register('dateOfBirth', {
+                required: 'La fecha de nacimiento es obligatoria.',
+                pattern: { value: /^\d{4}-\d{2}-\d{2}$/, message: 'Usa el formato AAAA-MM-DD.' },
+              })}
             />
-            <TextField
+            <DateField
               label="Fecha de aniversario"
-              type="date"
+              defaultValue={person.anniversaryDate}
               error={errors.anniversaryDate?.message}
-              registration={register('anniversaryDate', { required: 'La fecha de aniversario es obligatoria.' })}
+              registration={register('anniversaryDate', {
+                required: 'La fecha de aniversario es obligatoria.',
+                pattern: { value: /^\d{4}-\d{2}-\d{2}$/, message: 'Usa el formato AAAA-MM-DD.' },
+              })}
             />
           </div>
 
