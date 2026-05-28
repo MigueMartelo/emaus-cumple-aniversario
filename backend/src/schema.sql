@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS people (
 );
 
 ALTER TABLE people ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE people ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE;
 
 CREATE INDEX IF NOT EXISTS people_birth_month_day_idx
   ON people ((EXTRACT(MONTH FROM date_of_birth)), (EXTRACT(DAY FROM date_of_birth)));
