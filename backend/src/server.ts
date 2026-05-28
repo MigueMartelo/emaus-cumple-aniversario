@@ -1,17 +1,17 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { config } from './config.js';
+import { uploadImage } from './cloudinary.js';
 import { getAppDateParts, partsFromIsoDate } from './dateUtils.js';
 import { closeDatabase, runMigrations } from './db.js';
 import { createPerson, findTodayCelebrations, listPeople } from './peopleRepository.js';
-import { deleteUploadedFile, photoUrlFromFile, uploadPhoto, uploadsDir } from './uploads.js';
+import { uploadPhoto } from './uploads.js';
 import { validatePersonPayload } from './validation.js';
 
 const app = express();
 
 app.use(cors({ origin: config.corsOrigin === '*' ? true : config.corsOrigin }));
 app.use(express.json({ limit: '20kb' }));
-app.use('/uploads', express.static(uploadsDir));
 
 function requireAdmin(request: Request, response: Response, next: NextFunction): void {
   const token = request.get('x-admin-token');
@@ -30,13 +30,18 @@ app.get('/api/health', (_request: Request, response: Response) => {
 
 app.post('/api/people', uploadPhoto.single('photo'), async (request: Request, response: Response, next: NextFunction) => {
   try {
+    let photoUrl: string | null = null;
+
+    if (request.file) {
+      photoUrl = await uploadImage(request.file.buffer);
+    }
+
     const validation = validatePersonPayload({
       ...request.body as Record<string, unknown>,
-      photoUrl: photoUrlFromFile(request.file),
+      photoUrl,
     });
 
     if (!validation.isValid) {
-      deleteUploadedFile(request.file);
       response.status(400).json({
         message: 'Por favor corrige los campos resaltados.',
         errors: validation.errors,
@@ -47,7 +52,6 @@ app.post('/api/people', uploadPhoto.single('photo'), async (request: Request, re
     const person = await createPerson(validation.data);
     response.status(201).json({ person });
   } catch (error) {
-    deleteUploadedFile(request.file);
     next(error);
   }
 });
