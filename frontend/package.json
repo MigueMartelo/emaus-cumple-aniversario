@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "start": "serve -s dist -l $PORT",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2"
+    "react-hook-form": "^7.54.2",
+    "serve": "^14.2.6"
   },
   "devDependencies": {
     "@types/react": "^19.2.15",
