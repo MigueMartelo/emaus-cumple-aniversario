@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { ApiError, getMediaUrl, listPeople } from '../api.ts';
+import { ApiError, listPeople } from '../api.ts';
 import type { Person } from '../types.ts';
 import { formatShortDate, formatPeopleCount, fullName, groupPeopleByBirthMonth } from '../utils.ts';
+import { PersonAvatar } from './PersonAvatar.tsx';
 
 interface RegisteredByMonthProps {
   adminToken: string;
@@ -76,18 +77,7 @@ export function RegisteredByMonth({ adminToken, onUnauthorized }: RegisteredByMo
               <div className="divide-y divide-[#eadcc1]">
                 {group.people.map((person) => (
                   <article key={person.id} className="flex items-center gap-3 px-4 py-3">
-                    {person.photoUrl ? (
-                      <img
-                        src={getMediaUrl(person.photoUrl)}
-                        alt={`Foto de ${fullName(person)}`}
-                        className="h-11 w-11 shrink-0 rounded-md border border-[#e6d8bd] object-cover"
-                      />
-                    ) : (
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#fff0c2] text-sm font-semibold text-[#8a5f13]">
-                        {person.firstName.charAt(0)}
-                        {person.lastName.charAt(0)}
-                      </div>
-                    )}
+                    <PersonAvatar firstName={person.firstName} lastName={person.lastName} photoUrl={person.photoUrl} size="sm" />
                     <div className="min-w-0 flex-1">
                       <h4 className="break-words font-semibold text-[#3f2c12]">{fullName(person)}</h4>
                       <p className="mt-1 text-sm text-[#6f6a60]">

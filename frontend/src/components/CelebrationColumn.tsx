@@ -1,8 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
-import { getMediaUrl } from '../api.ts';
 import type { CelebrationPerson } from '../types.ts';
 import { formatShortDate, fullName } from '../utils.ts';
+import { PersonAvatar } from './PersonAvatar.tsx';
 
 interface CelebrationColumnProps {
   title: string;
@@ -56,13 +56,7 @@ export function CelebrationColumn({
             <article key={`${title}-${person.id}`} className="rounded-md border border-[#e6d8bd] bg-[#fffdf8] p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-3">
-                  {person.photoUrl ? (
-                    <img
-                      src={getMediaUrl(person.photoUrl)}
-                      alt={`Foto de ${fullName(person)}`}
-                      className="h-12 w-12 shrink-0 rounded-md border border-[#e6d8bd] object-cover"
-                    />
-                  ) : null}
+                  <PersonAvatar firstName={person.firstName} lastName={person.lastName} photoUrl={person.photoUrl} size="md" />
                   <div className="min-w-0">
                     <h3 className="break-words font-semibold text-[#3f2c12]">{fullName(person)}</h3>
                     <p className="mt-1 text-sm text-[#6f6a60]">{formatShortDate(String(person[dateField]))}</p>
