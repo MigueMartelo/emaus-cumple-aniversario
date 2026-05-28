@@ -15,20 +15,26 @@ export function getInitialView(): string {
 }
 
 export function formatLongDate(value: string): string {
+  if (!value) return '—';
+  const d = new Date(`${value}T12:00:00`);
+  if (isNaN(d.getTime())) return '—';
   return new Intl.DateTimeFormat('es-CO', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(`${value}T12:00:00`));
+  }).format(d);
 }
 
 export function formatShortDate(value: string): string {
+  if (!value) return '—';
+  const d = new Date(`${value}T12:00:00`);
+  if (isNaN(d.getTime())) return '—';
   return new Intl.DateTimeFormat('es-CO', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(`${value}T12:00:00`));
+  }).format(d);
 }
 
 export function fullName(person: Person): string {
