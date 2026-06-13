@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
 import { uploadImage } from './cloudinary.js';
 import { getAppDateParts, partsFromIsoDate } from './dateUtils.js';
@@ -12,6 +13,25 @@ const app = express();
 
 app.use(cors({ origin: config.corsOrigin === '*' ? true : config.corsOrigin }));
 app.use(express.json({ limit: '20kb' }));
+
+app.use((request: Request, response: Response, next: NextFunction) => {
+  const start = Date.now();
+
+  response.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${request.method} ${request.path} ${response.statusCode} - ${duration}ms`);
+  });
+
+  next();
+});
+
+const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Demasiadas solicitudes desde esta IP. Intenta de nuevo en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 function requireAdmin(request: Request, response: Response, next: NextFunction): void {
   const token = request.get('x-admin-token');
@@ -28,7 +48,7 @@ app.get('/api/health', (_request: Request, response: Response) => {
   response.json({ ok: true, service: 'community-dates-api' });
 });
 
-app.post('/api/people', uploadPhoto.single('photo'), async (request: Request, response: Response, next: NextFunction) => {
+app.post('/api/people', registrationLimiter, uploadPhoto.single('photo'), async (request: Request, response: Response, next: NextFunction) => {
   try {
     let photoUrl: string | null = null;
 
