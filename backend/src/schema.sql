@@ -18,3 +18,5 @@ CREATE INDEX IF NOT EXISTS people_anniversary_month_day_idx
   ON people ((EXTRACT(MONTH FROM anniversary_date)), (EXTRACT(DAY FROM anniversary_date)));
 
 CREATE INDEX IF NOT EXISTS people_created_at_idx ON people (created_at DESC);
+
+ALTER TABLE people ADD COLUMN IF NOT EXISTS spouse_id BIGINT REFERENCES people(id);
