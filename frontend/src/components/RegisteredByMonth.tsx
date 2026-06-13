@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Pencil, RefreshCw } from 'lucide-react';
-import { ApiError, listPeople, setPersonActive } from '../api.ts';
+import { Eye, EyeOff, Link2, Link2Off, Pencil, RefreshCw } from 'lucide-react';
+import { ApiError, listPeople, setPersonActive, setPersonSpouse } from '../api.ts';
 import type { Person } from '../types.ts';
 import { formatShortDate, formatPeopleCount, fullName, groupPeopleByBirthMonth } from '../utils.ts';
 import { PersonAvatar } from './PersonAvatar.tsx';
@@ -20,6 +20,8 @@ interface RegisteredState {
 export function RegisteredByMonth({ adminToken, onUnauthorized }: RegisteredByMonthProps) {
   const [state, setState] = useState<RegisteredState>({ status: 'loading', people: [], error: '' });
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [spouseEditId, setSpouseEditId] = useState<number | null>(null);
+  const [spouseLoading, setSpouseLoading] = useState<number | null>(null);
 
   async function loadPeople() {
     setState((current) => ({ ...current, status: 'loading', error: '' }));
@@ -56,6 +58,21 @@ export function RegisteredByMonth({ adminToken, onUnauthorized }: RegisteredByMo
       if (error instanceof ApiError && error.message.includes('administrador')) {
         onUnauthorized();
       }
+    }
+  }
+
+  async function handleSetSpouse(personId: number, spouseId: number | null) {
+    setSpouseLoading(personId);
+    try {
+      await setPersonSpouse(adminToken, personId, spouseId);
+      await loadPeople();
+    } catch (error) {
+      if (error instanceof ApiError && error.message.includes('administrador')) {
+        onUnauthorized();
+      }
+    } finally {
+      setSpouseLoading(null);
+      setSpouseEditId(null);
     }
   }
 
@@ -119,6 +136,60 @@ export function RegisteredByMonth({ adminToken, onUnauthorized }: RegisteredByMo
                         <p className="mt-1 text-sm text-[#6f6a60]">
                           Cumpleaños: {formatShortDate(person.dateOfBirth)} · Aniversario: {formatShortDate(person.anniversaryDate)}
                         </p>
+                        {/* Spouse linking */}
+                        {spouseLoading === person.id ? (
+                          <p className="mt-1 text-xs text-[#6f6a60]">Guardando pareja...</p>
+                        ) : person.spouseId ? (
+                          (() => {
+                            const spouse = state.people.find((p) => p.id === person.spouseId);
+                            return (
+                              <div className="mt-1 flex items-center gap-1.5">
+                                <span className="text-xs text-[#6f6a60]">
+                                  Pareja: {spouse ? fullName(spouse) : `#${person.spouseId}`}
+                                </span>
+                                <button
+                                  type="button"
+                                  title="Quitar vínculo"
+                                  onClick={() => handleSetSpouse(person.id, null)}
+                                  className="grid h-4 w-4 place-items-center rounded text-[#b31316] transition hover:bg-[#fff1f0]"
+                                >
+                                  <Link2Off size={12} aria-hidden="true" />
+                                </button>
+                              </div>
+                            );
+                          })()
+                        ) : spouseEditId === person.id ? (
+                          <select
+                            autoFocus
+                            className="mt-1 w-full max-w-xs rounded border border-[#d8c6a4] bg-white px-2 py-1 text-xs text-[#3f2c12] focus:outline-none focus:ring-1 focus:ring-[#8a5f13]"
+                            defaultValue=""
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) handleSetSpouse(person.id, Number(val));
+                              else setSpouseEditId(null);
+                            }}
+                            onBlur={() => setSpouseEditId(null)}
+                          >
+                            <option value="">Seleccionar pareja...</option>
+                            {state.people
+                              .filter((p) => p.id !== person.id && p.active)
+                              .sort((a, b) => fullName(a).localeCompare(fullName(b), 'es-CO'))
+                              .map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {fullName(p)}
+                                </option>
+                              ))}
+                          </select>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSpouseEditId(person.id)}
+                            className="mt-1 flex items-center gap-1 text-xs text-[#8a5f13] transition hover:underline"
+                          >
+                            <Link2 size={11} aria-hidden="true" />
+                            Vincular pareja
+                          </button>
+                        )}
                       </div>
                       <div className="flex shrink-0 gap-1">
                         {person.active ? (

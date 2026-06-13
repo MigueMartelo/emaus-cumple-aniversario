@@ -80,6 +80,14 @@ export function setPersonActive(adminToken: string, id: number, active: boolean)
   });
 }
 
+export function setPersonSpouse(adminToken: string, id: number, spouseId: number | null): Promise<{ person: Person }> {
+  return request<{ person: Person }>(`/api/people/${id}/spouse`, {
+    method: 'PATCH',
+    headers: { ...adminHeaders(adminToken), 'content-type': 'application/json' },
+    body: JSON.stringify({ spouseId }),
+  });
+}
+
 export function getMediaUrl(path: string): string {
   return path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
 }

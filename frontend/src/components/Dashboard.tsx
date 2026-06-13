@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Gift, Heart, RefreshCw } from 'lucide-react';
+import { Gift, RefreshCw } from 'lucide-react';
 import { ApiError, getTodayCelebrations } from '../api.ts';
 import type { TodayCelebrationsData } from '../types.ts';
 import { formatLongDate, formatPeopleCount } from '../utils.ts';
+import { AnniversaryColumn } from './AnniversaryColumn.tsx';
 import { CelebrationColumn } from './CelebrationColumn.tsx';
 
 interface DashboardProps {
@@ -77,17 +78,9 @@ export function Dashboard({ adminToken, onUnauthorized }: DashboardProps) {
           detail={(person) => ('age' in person ? (person.age === 1 ? '1 año' : `${person.age} años`) : '')}
           dateField="dateOfBirth"
         />
-        <CelebrationColumn
-          title="Aniversarios"
-          icon={Heart}
-          accent="bg-[#fde8e7] text-[#c91518]"
-          countStyle="bg-[#fff1f0] text-[#b31316]"
-          detailStyle="bg-[#fff1f0] text-[#b31316]"
+        <AnniversaryColumn
           loading={state.status === 'loading'}
-          emptyText="No hay aniversarios hoy."
-          people={data?.anniversaries ?? []}
-          detail={(person) => ('years' in person ? (person.years === 1 ? '1 año' : `${person.years} años`) : '')}
-          dateField="anniversaryDate"
+          anniversaries={data?.anniversaries ?? []}
         />
       </div>
 

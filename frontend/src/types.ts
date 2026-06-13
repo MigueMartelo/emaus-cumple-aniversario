@@ -6,6 +6,7 @@ export interface Person {
   anniversaryDate: string;
   photoUrl: string | null;
   active: boolean;
+  spouseId: number | null;
 }
 
 export interface BirthdayPerson extends Person {
@@ -18,11 +19,17 @@ export interface AnniversaryPerson extends Person {
 
 export type CelebrationPerson = BirthdayPerson | AnniversaryPerson;
 
+export interface CoupleAnniversary {
+  person: AnniversaryPerson;
+  spouse: AnniversaryPerson | null;
+  years: number;
+}
+
 export interface TodayCelebrationsData {
   date: string;
   timeZone: string;
   birthdays: BirthdayPerson[];
-  anniversaries: AnniversaryPerson[];
+  anniversaries: CoupleAnniversary[];
   peopleCount: number;
 }
 
