@@ -7,6 +7,7 @@ export interface Person {
   photoUrl: string | null;
   active: boolean;
   createdAt: Date;
+  spouseId: number | null;
 }
 
 export interface BirthdayPerson extends Person {
@@ -14,6 +15,12 @@ export interface BirthdayPerson extends Person {
 }
 
 export interface AnniversaryPerson extends Person {
+  years: number;
+}
+
+export interface CoupleAnniversary {
+  person: AnniversaryPerson;
+  spouse: AnniversaryPerson | null;
   years: number;
 }
 

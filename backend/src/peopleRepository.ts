@@ -1,5 +1,5 @@
 import { pool } from './db.js';
-import type { AnniversaryPerson, BirthdayPerson, DateParts, Person, PersonInput } from './types.js';
+import type { AnniversaryPerson, BirthdayPerson, CoupleAnniversary, DateParts, Person, PersonInput } from './types.js';
 
 const PERSON_COLUMNS = `
   id,
@@ -9,7 +9,8 @@ const PERSON_COLUMNS = `
   to_char(anniversary_date, 'YYYY-MM-DD') AS "anniversaryDate",
   photo_url AS "photoUrl",
   active,
-  created_at AS "createdAt"
+  created_at AS "createdAt",
+  spouse_id AS "spouseId"
 `;
 
 export async function createPerson(person: PersonInput): Promise<Person> {
@@ -64,9 +65,55 @@ export async function listPeople(): Promise<Person[]> {
   return result.rows;
 }
 
+export async function setSpouse(id: number, spouseId: number | null): Promise<Person | null> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const current = await client.query<{ spouseId: number | null }>(
+      'SELECT spouse_id AS "spouseId" FROM people WHERE id = $1',
+      [id],
+    );
+    if (!current.rows[0]) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    const oldSpouseId = current.rows[0].spouseId;
+
+    // Clear old spouse's back-link
+    if (oldSpouseId && oldSpouseId !== spouseId) {
+      await client.query('UPDATE people SET spouse_id = NULL WHERE id = $1', [oldSpouseId]);
+    }
+
+    // If new spouse already has a different link, clear it
+    if (spouseId) {
+      const newSpouseCurrent = await client.query<{ spouseId: number | null }>(
+        'SELECT spouse_id AS "spouseId" FROM people WHERE id = $1',
+        [spouseId],
+      );
+      const newSpouseOldLink = newSpouseCurrent.rows[0]?.spouseId ?? null;
+      if (newSpouseOldLink && newSpouseOldLink !== id) {
+        await client.query('UPDATE people SET spouse_id = NULL WHERE id = $1', [newSpouseOldLink]);
+      }
+      await client.query('UPDATE people SET spouse_id = $1 WHERE id = $2', [id, spouseId]);
+    }
+
+    await client.query('UPDATE people SET spouse_id = $1 WHERE id = $2', [spouseId, id]);
+    await client.query('COMMIT');
+
+    const result = await client.query<Person>(`SELECT ${PERSON_COLUMNS} FROM people WHERE id = $1`, [id]);
+    return result.rows[0] ?? null;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 interface TodayCelebrations {
   birthdays: BirthdayPerson[];
-  anniversaries: AnniversaryPerson[];
+  anniversaries: CoupleAnniversary[];
   peopleCount: number;
 }
 
@@ -97,9 +144,27 @@ export async function findTodayCelebrations({ month, day, date }: DateParts): Pr
     pool.query<{ peopleCount: number }>('SELECT COUNT(*)::int AS "peopleCount" FROM people WHERE active = TRUE'),
   ]);
 
+  const processed = new Set<number>();
+  const coupleAnniversaries: CoupleAnniversary[] = [];
+
+  for (const person of anniversaries.rows) {
+    if (processed.has(person.id)) continue;
+    processed.add(person.id);
+
+    const spouse = person.spouseId
+      ? (anniversaries.rows.find((p) => p.id === person.spouseId) ?? null)
+      : null;
+
+    if (spouse) {
+      processed.add(spouse.id);
+    }
+
+    coupleAnniversaries.push({ person, spouse, years: person.years });
+  }
+
   return {
     birthdays: birthdays.rows,
-    anniversaries: anniversaries.rows,
+    anniversaries: coupleAnniversaries,
     peopleCount: totals.rows[0].peopleCount,
   };
 }
