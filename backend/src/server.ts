@@ -5,7 +5,7 @@ import { config } from './config.js';
 import { uploadImage } from './cloudinary.js';
 import { getAppDateParts, partsFromIsoDate } from './dateUtils.js';
 import { closeDatabase, runMigrations } from './db.js';
-import { createPerson, findTodayCelebrations, getPersonById, listPeople, setPersonActive, updatePerson } from './peopleRepository.js';
+import { createPerson, findTodayCelebrations, getPersonById, listPeople, setPersonActive, setSpouse, updatePerson } from './peopleRepository.js';
 import { uploadPhoto } from './uploads.js';
 import { validatePersonPayload } from './validation.js';
 
@@ -107,6 +107,37 @@ app.patch('/api/people/:id', requireAdmin, async (request: Request, response: Re
     }
 
     const person = await updatePerson(id, validation.data);
+    response.json({ person });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.patch('/api/people/:id/spouse', requireAdmin, async (request: Request, response: Response, next: NextFunction) => {
+  try {
+    const id = parseId(request.params['id']);
+    if (!id) {
+      response.status(400).json({ message: 'ID inválido.' });
+      return;
+    }
+
+    const { spouseId } = request.body as { spouseId: unknown };
+    if (spouseId !== null && (typeof spouseId !== 'number' || !Number.isInteger(spouseId) || spouseId <= 0)) {
+      response.status(400).json({ message: 'spouseId debe ser un número entero positivo o null.' });
+      return;
+    }
+
+    if (spouseId === id) {
+      response.status(400).json({ message: 'Una persona no puede ser su propia pareja.' });
+      return;
+    }
+
+    const person = await setSpouse(id, typeof spouseId === 'number' ? spouseId : null);
+    if (!person) {
+      response.status(404).json({ message: 'Persona no encontrada.' });
+      return;
+    }
+
     response.json({ person });
   } catch (error) {
     next(error);
