@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Gift, Heart, RefreshCw } from 'lucide-react';
 import { ApiError, getTodayCelebrations } from '../api.ts';
 import type { TodayCelebrationsData } from '../types.ts';
@@ -19,7 +19,7 @@ interface DashboardState {
 export function Dashboard({ adminToken, onUnauthorized }: DashboardProps) {
   const [state, setState] = useState<DashboardState>({ status: 'loading', data: null, error: '' });
 
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     setState((current) => ({ ...current, status: 'loading', error: '' }));
 
     try {
@@ -33,11 +33,11 @@ export function Dashboard({ adminToken, onUnauthorized }: DashboardProps) {
 
       setState({ status: 'error', data: null, error: 'No se pudo cargar el tablero. Revisa que la API esté funcionando.' });
     }
-  }
+  }, [adminToken, onUnauthorized]);
 
   useEffect(() => {
     loadDashboard();
-  }, [adminToken]);
+  }, [loadDashboard]);
 
   const data = state.data;
 
