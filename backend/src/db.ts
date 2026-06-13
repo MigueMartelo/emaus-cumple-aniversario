@@ -14,6 +14,11 @@ export const pool = new Pool({
   connectionString: config.databaseUrl!,
 });
 
+pool.on('error', (error) => {
+  console.error('Unexpected database pool error:', error);
+  process.exit(1);
+});
+
 export async function runMigrations(): Promise<void> {
   const schemaPath = path.join(dirname, 'schema.sql');
   const schema = await fs.readFile(schemaPath, 'utf8');
