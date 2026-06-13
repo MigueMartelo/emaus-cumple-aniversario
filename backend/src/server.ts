@@ -56,8 +56,9 @@ app.post('/api/people', uploadPhoto.single('photo'), async (request: Request, re
   }
 });
 
-function parseId(param: string | undefined): number | null {
-  const id = Number(param);
+function parseId(param: string | string[] | undefined): number | null {
+  const value = Array.isArray(param) ? param[0] : param;
+  const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
