@@ -10,8 +10,11 @@ requireConfig();
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const isLocalDb = /localhost|127\.0\.0\.1/.test(config.databaseUrl ?? '');
+
 export const pool = new Pool({
   connectionString: config.databaseUrl!,
+  ...(!isLocalDb ? { ssl: { rejectUnauthorized: false } } : {}),
 });
 
 pool.on('error', (error) => {

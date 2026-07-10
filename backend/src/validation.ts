@@ -52,6 +52,10 @@ export function validatePersonPayload(body: PersonBody): ValidationResult {
     errors['anniversaryDate'] = 'La fecha de aniversario no puede estar en el futuro.';
   }
 
+  if (person.photoUrl && !person.photoUrl.startsWith('https://res.cloudinary.com/')) {
+    errors['photo'] = 'URL de foto inválida.';
+  }
+
   return {
     data: person,
     errors,

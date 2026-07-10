@@ -137,13 +137,22 @@ describe('validatePersonPayload', () => {
       expect(result.data.photoUrl).toBeNull();
     });
 
-    it('should accept string photo URL', () => {
+    it('should accept a Cloudinary photo URL', () => {
+      const result = validatePersonPayload({
+        ...validPayload,
+        photoUrl: 'https://res.cloudinary.com/demo/image/upload/v123/photo.jpg',
+      });
+      expect(result.isValid).toBe(true);
+      expect(result.data.photoUrl).toBe('https://res.cloudinary.com/demo/image/upload/v123/photo.jpg');
+    });
+
+    it('should reject non-Cloudinary photo URL', () => {
       const result = validatePersonPayload({
         ...validPayload,
         photoUrl: 'https://example.com/photo.jpg',
       });
-      expect(result.isValid).toBe(true);
-      expect(result.data.photoUrl).toBe('https://example.com/photo.jpg');
+      expect(result.isValid).toBe(false);
+      expect(result.errors.photo).toBe('URL de foto inválida.');
     });
   });
 

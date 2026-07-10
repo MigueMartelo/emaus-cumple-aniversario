@@ -7,23 +7,27 @@ cloudinary.config({
   api_secret: config.cloudinaryApiSecret,
 });
 
-export async function uploadImage(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'emaus-parejas',
-        resource_type: 'image',
-        transformation: [{ width: 600, height: 600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
-      },
-      (error, result) => {
-        if (error || !result) {
-          reject(error ?? new Error('Error al subir la imagen a Cloudinary.'));
-        } else {
-          resolve(result.secure_url);
-        }
-      },
-    );
+export interface UploadSignature {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  uploadPreset: string;
+  signature: string;
+}
 
-    stream.end(buffer);
-  });
+export function createUploadSignature(): UploadSignature {
+  const timestamp = Math.round(Date.now() / 1000);
+  const uploadPreset = config.cloudinaryUploadPreset;
+  const signature = cloudinary.utils.api_sign_request(
+    { timestamp, upload_preset: uploadPreset },
+    config.cloudinaryApiSecret!,
+  );
+
+  return {
+    cloudName: config.cloudinaryCloudName!,
+    apiKey: config.cloudinaryApiKey!,
+    timestamp,
+    uploadPreset,
+    signature,
+  };
 }

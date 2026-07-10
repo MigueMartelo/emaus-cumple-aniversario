@@ -26,21 +26,57 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data;
 }
 
-export function createPerson(payload: FormValues): Promise<{ person: Person }> {
-  const formData = new FormData();
-  formData.append('firstName', payload.firstName);
-  formData.append('lastName', payload.lastName);
-  formData.append('dateOfBirth', payload.dateOfBirth);
-  formData.append('anniversaryDate', payload.anniversaryDate);
+interface UploadSignature {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  uploadPreset: string;
+  signature: string;
+}
 
+async function uploadPhotoToCloudinary(file: File): Promise<string> {
+  const { cloudName, apiKey, timestamp, uploadPreset, signature } =
+    await request<UploadSignature>('/api/uploads/signature');
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('api_key', apiKey);
+  formData.append('timestamp', String(timestamp));
+  formData.append('upload_preset', uploadPreset);
+  formData.append('signature', signature);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = (await response.json()) as { secure_url?: string; error?: { message: string } };
+
+  if (!response.ok || !data.secure_url) {
+    throw new ApiError(data.error?.message ?? 'No se pudo subir la foto.');
+  }
+
+  return data.secure_url;
+}
+
+export async function createPerson(payload: FormValues): Promise<{ person: Person }> {
   const photo = payload.photo?.[0];
+  let photoUrl: string | null = null;
+
   if (photo) {
-    formData.append('photo', photo);
+    photoUrl = await uploadPhotoToCloudinary(photo);
   }
 
   return request<{ person: Person }>('/api/people', {
     method: 'POST',
-    body: formData,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      dateOfBirth: payload.dateOfBirth,
+      anniversaryDate: payload.anniversaryDate,
+      photoUrl,
+    }),
   });
 }
 

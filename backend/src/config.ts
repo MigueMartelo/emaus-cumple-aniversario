@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+dotenv.config({ path: path.join(backendRoot, '.env') });
 
 export const config = {
   port: Number(process.env.PORT ?? 4000),
@@ -9,6 +14,7 @@ export const config = {
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+  cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET ?? 'emaus_signed',
 };
 
 export function requireConfig(): void {
